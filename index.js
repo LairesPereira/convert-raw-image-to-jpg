@@ -44,7 +44,7 @@ function getPath() {
     // Returning a promise is how we wait the user give us the folders path
     return new Promise ((resolve) => {
         rl.question('Please, insert the path where are all files:  ', pathInput => {
-            path = pathInput
+            let path = pathInput
             resolve(path)
             rl.close()
         })
