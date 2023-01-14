@@ -1,27 +1,28 @@
 // Convert all RAW files inside a folder
+// ATENTION: this program uses imageMagick
+// So you need to install it.
+// You can see more at https://imagemagick.org/
+
 const { rejects } = require('assert');
-const { exec, ChildProcess } = require('child_process');
-const fs  = require('fs')
+const { exec } = require('child_process');
+const path = require('path');
 const readLine = require('readline');
 
+// Create interface for read and display info
 const rl = readLine.createInterface({
     input: process.stdin,
     output: process.stdout
 })
 
 async function convertRawImageToJpeg() {
-    const path = await getPath()
-    const files = await getFiles()
-    
-    console.log('aqui em cima', files)
-
-    // files.map(function(teste) {
-    //     console.log(teste)
-    // })
-    // let jpegExtension = files[file].replace('.CR3', '.jpeg')
-    // console.log(jpegExtension)
+    // Wait the path containg the files to be converted
+    const path = await getPath() 
+    // Define the command lines that will actually convert the files running a loop over them
+    // convert is part of imageMagick C library
     const instructions = 'for item in *; do convert "$item" "${item%.*}.jpeg"; done'
+    // Open a sheel process and execute the instructions inside a given folder
     exec('cd ' + path + '&& ' + instructions, (error, stdout, stderr) => {
+        // Check for errors
         if (error) { 
             console.log(`error: ${error.message}`)
             rejects(error.message)
@@ -33,30 +34,16 @@ async function convertRawImageToJpeg() {
         console.log(`stdout: ${stdout}`)
         
     }).on('exit', function() {
-        console.log('Finalizando conversão')
-    })
-}
-
-function getFiles() {
-    return new Promise ((resolve) => {
-        let filesInsideFolder = []
-        fs.readdir(path, (err, files) => {
-            if(err) { console.log(err) }
-            files.forEach(element => {
-                console.log(element)
-                filesInsideFolder.push(element)
-            });
-            if(filesInsideFolder[0] === '.DS_Store') {
-                filesInsideFolder.shift()
-            }
-            resolve(filesInsideFolder)
-        })
+        // When shell exit the process we finish the programm 
+        console.log('Finishing convertion...')
+        process.exit()
     })
 }
 
 function getPath() {
+    // Returning a promise is how we wait the user give us the folders path
     return new Promise ((resolve) => {
-        rl.question('Inisira o caminho da pasta que deseja converter - ', pathInput => {
+        rl.question('Please, insert the path where are all files:  ', pathInput => {
             path = pathInput
             resolve(path)
             rl.close()
